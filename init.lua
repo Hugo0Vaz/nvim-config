@@ -24,6 +24,7 @@ vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
 vim.opt.inccommand = 'split'
 vim.opt.cursorline = true
 vim.opt.scrolloff = 10
+vim.opt.colorcolumn = '80'
 
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
@@ -60,6 +61,15 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
   callback = function()
     vim.highlight.on_yank()
+  end,
+})
+
+vim.api.nvim_create_autocmd({ 'BufNewFile', 'BufRead' }, {
+  desc = 'Setting filetype to *.blade.php files',
+  pattern = { '*.blade.php' },
+  callback = function()
+    local buffer = vim.api.nvim_get_current_buf()
+    vim.api.nvim_set_option_value('filetype', 'blade', { buf = buffer })
   end,
 })
 
@@ -224,7 +234,7 @@ require('lazy').setup {
       capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
 
       local servers = {
-        intelephense = {},
+        phpactor = {},
         gopls = {},
         pyright = {},
         lua_ls = {
@@ -299,7 +309,12 @@ require('lazy').setup {
       'saadparwaiz1/cmp_luasnip',
       'hrsh7th/cmp-nvim-lsp',
       'hrsh7th/cmp-path',
-      'rafamadriz/friendly-snippets',
+      {
+        'rafamadriz/friendly-snippets',
+        config = function()
+          require('luasnip').filetype_extend('blade', { 'blade' })
+        end,
+      },
     },
     config = function()
       local cmp = require 'cmp'
@@ -407,5 +422,22 @@ require('lazy').setup {
         indent = { enable = true },
       }
     end,
+  },
+  { -- Laravel utilities
+    'adalessa/laravel.nvim',
+    dependencies = {
+      'nvim-telescope/telescope.nvim',
+      'tpope/vim-dotenv',
+      'MunifTanjim/nui.nvim',
+      'nvimtools/none-ls.nvim',
+    },
+    cmd = { 'Sail', 'Artisan', 'Composer', 'Npm', 'Yarn', 'Laravel' },
+    keys = {
+      { '<leader>la', ':Laravel artisan<cr>' },
+      { '<leader>lr', ':Laravel routes<cr>' },
+      { '<leader>lm', ':Laravel related<cr>' },
+    },
+    event = { 'VeryLazy' },
+    config = true,
   },
 }
